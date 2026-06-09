@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Student Due Info</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* [সংশোধিত স্টাইল] */
+        /* --- কালার কনফিগারেশন: সাদা রং ঘীয়া-তে পরিবর্তন --- */
+        :root {
+            --color-white: #f8f8e8; /* ঘীয়া কালার (Off-White/Creamy) */
+            --color-primary: #1a73e8; /* Blue */
+            --color-secondary: #333; /* Dark Gray */
+            --color-light-header: #e8f0fe; /* Light blue for header and total row */
+            --color-header-text: #1a73e8; /* Primary blue for header text */
+            --color-error: #e74c3c; 
+        }
+
+        /* Base Styles - Student Page */
+        body { font-family: Arial, sans-serif; margin:0; padding:15px; background:#f0f2f5; color:#111; }
+        h2, h3 { text-align:center; margin:5px 0; font-weight:600; }
+        h2 { color:var(--color-primary); }
+        h3 { color:#333; font-size:1.05em; }
+        .row { display:flex; align-items:center; margin:8px 0; flex-wrap:wrap; background:var(--color-white); /* White to Ghiya */ padding:8px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.06);}
+        .row label { margin-right:8px; font-size:0.95em; color:#333; min-width:95px; }
+        .row input, .row select { padding:6px; flex:1; min-width:120px; border-radius:6px; border:1px solid #ccc; font-size:0.95em; }
+        button { padding:6px 12px; margin:3px; cursor:pointer; font-size:0.95em; border:none; border-radius:6px; background:var(--color-primary); color:white; transition:0.18s; }
+        button:hover { background:#155ab6; }
+        table { width:100%; border-collapse:collapse; margin-top:10px; display:none; background:var(--color-white); /* White to Ghiya */ border-radius:8px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.06);}
+        table, th, td { border:1px solid #ddd; text-align:center; }
+        th, td { padding:8px; font-size:0.88em; }
+        th { background:var(--color-light-header); color:var(--color-primary); }
+        td:first-child { font-weight:600; text-align:left; padding-left:12px; }
+        #nameRow { display:none; margin-top:5px; }
+        footer { text-align:center; margin-top:15px; font-size:11px; color:gray; }
+        .table2-controls { display:flex; justify-content:flex-end; margin-top:5px; }
+        #loadingMsg { position:fixed; top:18%; left:50%; transform:translateX(-50%); background:var(--color-white); /* White to Ghiya */ border:1px solid #ccc; padding:18px 22px; z-index:1000; text-align:center; font-size:13.5px; display:none; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.12);}
+        #clock, #countdown { font-weight:bold; font-size:13px; }
+        @media (max-width:480px){
+            .row{flex-direction:column; align-items:stretch;}
+            .row label{margin-bottom:6px;}
+            button{width:100%; margin:6px 0;}
+            table, th, td{font-size:0.75em;}
+        }
+        .fee-table-container, .payment-table-container { overflow-x:auto; }
+
+        /* --- নোটিশ বক্স স্টাইল (সংশোধিত) --- */
+        #noticeBox {
+            /* ** সংশোধিত: কালার নীল, লেখা সাদা, বক্সের উপরে ও নিচে মার্জিন ** */
+            background-color: var(--color-primary); /* নীল ব্যাকগ্রাউন্ড */
+            border: 1px solid #155ab6; /* নীল বর্ডার */
+            padding: 10px;
+            margin: 10px auto; 
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 100%; 
+            box-sizing: border-box;
+            display: none; 
+            color: var(--color-white); /* লেখা ঘীয়া/সাদা */
+            font-weight: 500;
+            font-size: 15px;
+            overflow-wrap: break-word; 
+            text-align: center; /* ** সংশোধিত: পুরো বক্সের টেক্সট মাঝখানে ** */
+        }
+        #noticeBox h4 {
+            /* ** সংশোধিত: নোটিশ শিরোনাম মাঝখানে ** */
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--color-white); /* লেখা ঘীয়া/সাদা */
+            border-bottom: 1px dashed #ffffff70; /* হালকা সাদা ড্যাশড লাইন */
+            padding-bottom: 5px;
+            text-align: center; 
+        }
+        #noticeBox p {
+            color: var(--color-white); /* লেখা ঘীয়া/সাদা */
+            margin: 0;
+        }
+
+        /* --- অন্যান্য স্টাইল --- */
+        
+        /* Teacher's Corner Styles */
+        .teacher-container { max-width: 420px; margin: auto; background: var(--color-white); /* White to Ghiya */ padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); display:none; }
+        .teacher-container input, .teacher-container select, .teacher-container button { width: 100%; padding: 10px; margin: 6px 0; font-size: 15px; border: 1px solid #ccc; border-radius: 8px; }
+        .teacher-container button { background: var(--color-primary); color: white; border: none; cursor: pointer; }
+        .teacher-container button:hover { background: #155ab6; }
+        .teacher-container .hidden { display: none; }
+        .teacher-container .error { color: red; text-align: center; margin-top: 8px; font-size: 14px; }
+        .teacher-container table { font-size: 13px; display:table; }
+        .teacher-container th, .teacher-container td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+        .teacher-container th { background: #f8f9fa; }
+        .previous-btn, .close-btn { background: var(--color-primary) !important; }
+        .previous-btn:hover, .close-btn:hover { background: #155ab6 !important; }
+
+        /* New Payment History Table Formatting */
+        #paymentTable th { background: #f0f8ff; color: #007bff; }
+        #paymentTable tr:nth-child(even) { background-color: #f9f9f9; }
+        #paymentTable tr:hover { background-color: #eaf6ff; }
+        #paymentTable tfoot tr { font-weight: bold; background-color: var(--color-light-header); }
+
+        /* Popup Message Styles */
+        #popupContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        #popupBox {
+            background: var(--color-white); /* White to Ghiya */
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-width: 300px;
+            width: 90%;
+        }
+        #popupBox p {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+        }
+        #popupOkBtn {
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #popupOkBtn:hover {
+            background: #155ab6;
+        }
+        
+        /* Accounts Corner Styles */
+        #accountsCornerInterface { display:none; } 
+        #accountsCornerInterface h1 {
+            margin: 5px 0;
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--color-primary); 
+            text-align: center;
+        }
+        #accountsCornerInterface header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-top: 5px;
+        }
+
+        /* Card Component */
+        .card {
+            background: var(--color-white); /* White to Ghiya */
+            padding: 20px;
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
+            max-width: 1300px;
+            margin: 0 auto 20px auto;
+            border-top: 4px solid var(--color-primary); 
+        }
+        
+        #unlockCard {
+            max-width: 450px;
+            padding: 30px;
+        }
+        #accountsCornerInterface #unlockCard h2 { 
+            display: none; 
+            margin: 0; 
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--color-secondary); 
+        }
+
+        /* Form Elements */
+        #accountsCornerInterface label {
+            display: block;
+            margin: 15px 0 8px;
+            font-weight: 600;
+            color: var(--color-secondary);
+            font-size: 15px;
+        }
+        #accountsCornerInterface input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 1px solid #ccc; 
+            border-radius: 8px; 
+            box-sizing: border-box;
+            transition: all .2s ease;
+        }
+        #accountsCornerInterface input[type="text"]:focus {
+            border-color: var(--color-primary);
+            outline: none;
+            box-shadow: 0 0 8px rgba(26, 115, 232, 0.2);
+        }
+        
+        /* Button Style */
+        #accountsCornerInterface button {
+            width: 100%;
+            padding: 12px 25px;
+            background: var(--color-primary); 
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all .2s;
+            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.2);
+        }
+        #accountsCornerInterface button:hover {
+            background: #155ab6; 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(26, 115, 232, 0.2);
+        }
+        #accountsCornerInterface button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(26, 115, 232, 0.2);
+        }
+        
+        /* Back Button Style (All back buttons are blue) */
+        #accountsCornerInterface #backBtn, #accountsCornerInterface #unlockBackBtn { 
+            background: var(--color-primary);
+            margin-top: 15px;
+        }
+        #accountsCornerInterface #backBtn:hover, #accountsCornerInterface #unlockBackBtn:hover {
+            background: #155ab6; 
+            box-shadow: 0 6px 12px rgba(26, 115, 232, 0.2);
+        }
+
+        /* Utility & Error */
+        #accountsCornerInterface .error {
+            color: var(--color-error);
+            margin-top: 15px;
+            font-weight: 500;
+            font-size: 15px;
+            text-align: center;
+        }
+        #accountsCornerInterface .hidden {
+            display: none !important;
+        }
+        #accountsCornerInterface .small {
+            font-size: 14px;
+            color: var(--color-secondary);
+            margin-top: -15px;
+            margin-bottom: 20px;
+            font-weight: 400;
+            display: block;
+            text-align: center;
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto; 
+            margin-top: 15px;
+            border-radius: 8px; 
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); 
+            background-color: var(--color-white); /* White to Ghiya */
+        }
+        #accountsCornerInterface table {
+            border-collapse: separate; 
+            border-spacing: 0; 
+            width: 100%;
+            min-width: 100%; 
+            table-layout: auto;
+            font-size: 14px;
+            display: table; 
+        }
+        /* ********** সংশোধিত: যখন "All" সিলেক্ট করা থাকবে না, তখন টেবিল ছোট হয়ে যাবে ********** */
+        #accountsCornerInterface table.single-column-view {
+            min-width: unset; 
+            width: 100%; 
+        }
+        /* ******************************************************************* */
+
+        
+        /* Cell styling */
+        #accountsCornerInterface th, #accountsCornerInterface td {
+            padding: 10px 8px;
+            text-align: center;
+            border-right: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+            white-space: nowrap; 
+            font-weight: 400;
+        }
+        #accountsCornerInterface th:last-child, #accountsCornerInterface td:last-child { border-right: none; } 
+        
+        /* Table Header (Sticky) */
+        #accountsCornerInterface th {
+            background: var(--color-light-header); 
+            color: var(--color-header-text); 
+            font-weight: 600;
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        #accountsCornerInterface th:first-child { border-top-left-radius: 8px; } 
+        #accountsCornerInterface th:last-child { border-top-right-radius: 8px; } 
+
+        /* Alternating Row Colors */
+        #accountsCornerInterface tbody tr:nth-child(even) td {
+            background-color: #fcfcfc;
+        }
+        
+        /* ফিক্সড কলাম */
+        #accountsCornerInterface td:first-child, #accountsCornerInterface th:first-child {
+            position: sticky; 
+            left: 0; 
+            background-color: var(--color-white); /* White to Ghiya */
+            font-weight: 500;
+            text-align: left;
+            padding-left: 12px;
+            z-index: 11; 
+            color: #444;
+            min-width: 120px; 
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); 
+        }
+        /* ফিক্সড কলাম ও ফিক্সড হেডারের ছেদবিন্দু */
+        #accountsCornerInterface th:first-child { 
+            background-color: var(--color-light-header); 
+            color: var(--color-header-text); 
+            font-weight: 600;
+            z-index: 20; 
+        }
+        /* ইভেন রো-এর ফিক্সড কলামের ব্যাকগ্রাউন্ড */
+        #accountsCornerInterface tbody tr:nth-child(even) td:first-child {
+            background-color: #fcfcfc;
+        }
+
+        /* Total Row Style */
+        #accountsCornerInterface .total-row td {
+            background-color: var(--color-light-header) !important; 
+            font-weight: 700;
+            color: var(--color-primary); 
+            font-size: 14px;
+            border-top: 1px solid #a0c3ff; 
+            border-bottom: none; 
+        }
+        #accountsCornerInterface .total-row td:first-child {
+            /* ফিক্সড কলামের জন্য টোটাল রোর ব্যাকগ্রাউন্ড এবং Z-Index ফিক্স */
+            background-color: #dbeaff !important; 
+            border-bottom-left-radius: 8px; 
+            z-index: 20; 
+        }
+        #accountsCornerInterface .total-row td:last-child {
+            background-color: #dbeaff !important; 
+            border-bottom-right-radius: 8px; 
+        }
+
+        /* Accounts Corner Dropdown Style */
+        #accountsCornerInterface #monthFilterContainer {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end; 
+        }
+
+        #accountsCornerInterface #monthFilterContainer label {
+            margin: 0 10px 0 0;
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--color-secondary);
+        }
+
+        #accountsCornerInterface #monthFilter {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 15px;
+            min-width: 150px;
+        }
+
+        /* --- MIS Calculation Styles (আপডেটেড লেআউট) --- */
+        #misCalculationInterface {
+            display: none;
+            min-height: 100vh;
+            width: 100%;
+            background: #f0f2f5;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        
+        .mis-fullscreen-container {
+            min-height: 100vh;
+            width: 100%;
+            max-width: 1200px; /* কন্টেইনারের সর্বোচ্চ প্রস্থ */
+            margin: 0 auto;
+            padding: 25px 20px;
+            background: var(--color-white);
+            box-shadow: 0 0 30px rgba(0,0,0,0.08);
+            border-radius: 0;
+            box-sizing: border-box;
+        }
+        
+        .mis-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e8eaed;
+            padding-bottom: 20px;
+        }
+        
+        .mis-header h1 {
+            font-size: 32px;
+            color: #202124;
+            margin: 0 0 10px 0;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+        }
+        
+        .mis-header h2 {
+            font-size: 28px;
+            color: var(--color-primary);
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        /* গ্রিড লেআউট - নতুন কাঠামো */
+        .mis-input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* দুটি কলাম */
+            gap: 20px;
+            margin-bottom: 30px;
+            background: #f9fafc;
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid #eef1f4;
+        }
+        
+        /* বয় ও গার্ল একসাথে প্রথম লাইনে */
+        .mis-boy-girl {
+            display: contents; /* গ্রিডের মধ্যে রেখে দিলাম */
+        }
+        
+        /* টোটাল স্টুডেন্ট - সম্পূর্ণ প্রস্থ */
+        .mis-full {
+            grid-column: span 2;
+        }
+        
+        /* Number of School Days - সম্পূর্ণ প্রস্থ, মাঝখানে */
+        .mis-days {
+            grid-column: span 2;
+        }
+        
+        /* অ্যাটেনডেন্স রেট - দুটি কলাম */
+        .mis-rate-boy, .mis-rate-girl {
+            grid-column: span 1;
+        }
+        
+        .mis-input-section label {
+            display: block;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #3c4043;
+        }
+        
+        .mis-input-section input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #d2d6da;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: all 0.2s;
+            background: var(--color-white);
+        }
+        
+        .mis-input-section input:focus {
+            border-color: var(--color-primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+        }
+        
+        .mis-input-section input[readonly] {
+            background: #f1f3f4;
+            color: #202124;
+            font-weight: 600;
+            font-size: 17px;
+        }
+        
+        .mis-calculate-btn {
+            width: 100%;
+            padding: 18px 20px;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 22px;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 15px 0 25px 0;
+            transition: 0.2s;
+            box-shadow: 0 6px 16px rgba(26,115,232,0.25);
+            letter-spacing: 0.5px;
+        }
+        
+        .mis-calculate-btn:hover {
+            background: #0d62d0;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(26,115,232,0.35);
+        }
+        
+        .mis-calculate-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 4px 10px rgba(26,115,232,0.2);
+        }
+        
+        .mis-result-card {
+            margin: 25px 0 20px 0;
+            background: #f9fafc;
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid #eef1f4;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.04);
+        }
+        
+        .mis-res-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            font-size: 18px;
+            padding: 8px 12px;
+            border-bottom: 1px dashed #e0e3e6;
+        }
+        
+        .mis-res-row:last-child {
+            border-bottom: none;
+        }
+        
+        .mis-res-row span {
+            color: #3c4043;
+            font-weight: 500;
+        }
+        
+        .mis-res-row b {
+            color: #202124;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        .mis-highlight-absent {
+            color: #d93025 !important;
+        }
+        
+        .mis-total-row {
+            margin-top: 16px;
+            background: #eef1f4;
+            border-radius: 14px;
+            padding: 12px 18px;
+        }
+        
+        .mis-total-row .mis-res-row {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .mis-back-btn {
+            width: 100%;
+            padding: 16px 20px;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(26,115,232,0.15);
+        }
+        
+        .mis-back-btn:hover {
+            background: #0d62d0;
+        }
+        
+        /* মোবাইল রেসপনসিভ */
+        @media (max-width: 768px) {
+            .mis-header h1 { font-size: 26px; }
+            .mis-header h2 { font-size: 22px; }
+            .mis-input-section { 
+                grid-template-columns: 1fr; 
+                gap: 15px; 
+                padding: 18px; 
+            }
+            .mis-boy-girl, .mis-full, .mis-days, .mis-rate-boy, .mis-rate-girl {
+                grid-column: span 1;
+            }
+            .mis-input-section label { font-size: 14px; }
+            .mis-input-section input { font-size: 15px; padding: 10px; }
+            .mis-calculate-btn { font-size: 20px; padding: 16px; }
+            .mis-result-card { padding: 18px; }
+            .mis-res-row { font-size: 16px; flex-direction: column; gap: 6px; align-items: flex-start; }
+            .mis-res-row b { font-size: 18px; }
+            .mis-back-btn { font-size: 18px; padding: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="mainInterface">
+        <h2>UCEP Robertsongonj Technical School</h2>
+        <h3>Student Due Information-26</h3>
+        
+        <div class="row" id="classRow">
+            <label>Class:</label>
+            <select id="classSelect">
+                <!-- **** সংশোধিত: নতুন ক্লাস লিস্ট **** -->
+                <option value="VIA_1st">VIA_1st</option>
+                <option value="VIB_1st">VIB_1st</option>
+                <option value="VIIA_1st">VIIA_1st</option>
+                <option value="VIIB_1st">VIIB_1st</option>
+                <option value="VIIIA_1st">VIIIA_1st</option>
+                <option value="VIIIB_1st">VIIIB_1st</option>
+                <option value="IXA_1st">IXA_1st</option>
+                <option value="IXB_1st">IXB_1st</option>
+                <option value="IXC_1st">IXC_1st</option>
+                <option value="X (ICT)1st">X (ICT)1st</option>
+                <option value="X (GEW)1st">X (GEW)1st</option>
+                <option value="X (EMW)1st">X (EMW)1st</option>
+                <option value="SSC-26 (ICT)1st">SSC-26 (ICT)1st</option>
+                <option value="SSC-26 (GEW)1st">SSC-26 (GEW)1st</option>
+                <option value="SSC-26 (EMW)1st">SSC-26 (EMW)1st</option>
+            </select>
+            <button onclick="viewData()">View</button>
+        </div>
+        
+        <div class="row" id="rollRow">
+            <label>Roll Number:</label>
+            <input type="number" id="rollInput" placeholder="Enter Roll">
+        </div>
+        
+        <div class="row" style="justify-content:center;" id="searchRow">
+            <button onclick="searchData()">Search</button>
+            <button onclick="clearData()">Clear</button>
+        </div>
+        
+        <div id="noticeBox">
+            <h4>নোটিশ 🔔</h4>
+            <p id="noticeContent"></p>
+        </div>
+        <div class="row" id="nameRow">
+            <label>Name:</label>
+            <input type="text" id="nameField" readonly>
+        </div>
+        
+        <div class="fee-table-container">
+            <table id="feeTable" aria-label="Fee table">
+                <tr><th>Fee Details</th><th>Target Tk.</th><th>Paid Tk.</th><th>Due Tk.</th></tr>
+                <tr><td>Admission fees</td><td id="B2">-</td><td id="C2">-</td><td id="D2">-</td></tr>
+                <tr><td>Session fees</td><td id="B3">-</td><td id="C3">-</td><td id="D3">-</td></tr>
+                <tr><td>Tuition fees</td><td id="B4">-</td><td id="C4">-</td><td id="D4">-</td></tr>
+                <tr><td>ICT fees</td><td id="B5">-</td><td id="C5">-</td><td id="D5">-</td></tr>
+                <tr><td>Annual Sports fees</td><td id="B6">-</td><td id="C6">-</td><td id="D6">-</td></tr>
+                <tr><td>Registration fees</td><td id="B7">-</td><td id="C7">-</td><td id="D7">-</td></tr>
+                <tr><td>Form fill up fees</td><td id="B8">-</td><td id="C8">-</td><td id="D8">-</td></tr>
+                <tr><td>Exam fees</td><td id="B9">-</td><td id="C9">-</td><td id="D9">-</td></tr>
+                <tr><td>Money Receipt Book</td><td id="B10">-</td><td id="C10">-</td><td id="D10">-</td></tr>
+                <tr style="font-weight:bold;background:#f7f7f7;"><td>Total</td><td id="B11">-</td><td id="C11">-</td><td id="D11">-</td></tr>
+            </table>
+        </div>
+        
+        <div style="margin-top:10px; text-align:center;" id="paymentBtnRow" hidden>
+            <button onclick="viewPaymentHistory()">Payment Details</button>
+        </div>
+        
+        <div class="payment-table-container">
+            <h3 id="paymentHeader" style="display:none; margin-top:15px;">Payment History</h3>
+            <table id="paymentTable" aria-label="Payment history">
+                <thead>
+                    <tr>
+                        <th>MR No.</th><th>Date</th><th>Admission</th><th>Session fee</th><th>Tuition fee</th><th>ICT</th><th>Sports</th><th>MR book</th><th>Registration</th><th>Form fill up</th><th>Exam</th><th>Others</th><th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="paymentBody"></tbody>
+                <tfoot id="paymentFooter"></tfoot>
+            </table>
+        </div>
+        
+        <div style="text-align:center; margin-top:8px;">
+            <button id="closePaymentBtn" style="display:none;" onclick="closePayment()">Close</button>
+        </div>
+        
+        <table id="table2" aria-label="All students">
+            <thead><tr><th>Roll</th><th>Name</th><th>Target</th><th>Paid</th><th>Due</th></tr></thead>
+            <tbody id="table2Body"></tbody>
+        </table>
+        <div id="table2Controls" class="table2-controls" style="display:none;">
+            <button onclick="closeTable2()">Close</button>
+        </div>
+        
+        <div style="text-align:center; padding-top:20px;">
+            <!-- Teacher's Corner বাটনের রং পরিবর্তন করে Accounts Corner এর মত করা হয়েছে -->
+            <button id="teacherCornerBtn" style="width:100%; max-width:400px; margin: 10px auto; display:block; padding: 10px; font-size:1.1em; background: var(--color-primary);">Teacher's Corner</button>
+            
+            <!-- MIS Calculation বাটনের রং পরিবর্তন করে Accounts Corner এর মত করা হয়েছে -->
+            <button id="misCalculationBtn" style="width:100%; max-width:400px; margin: 10px auto; display:block; padding: 10px; font-size:1.1em; background: var(--color-primary);">MIS Calculation</button>
+            
+            <button id="accountsCornerBtn" style="width:100%; max-width:400px; margin: 10px auto; display:block; padding: 10px; font-size:1.1em; background: var(--color-primary);">Account's Corner</button>
+        </div>
+        <footer>This app is developed by Md. Sakibul Islam.</footer>
+    </div>
+    
+    <div id="teacherCornerInterface" class="teacher-container">
+        <h2>UCEP Robetsongonj Technical School</h2>
+        <h3>Student fees deposit information</h3>
+                
+        <!-- এখন সরাসরি ক্লাস, ডেট, মান্থের অপশন দেখাবে -->
+        <label for="teacherClassSelect">Class</label>
+        <select id="teacherClassSelect">
+            <!-- **** সংশোধিত: নতুন ক্লাস লিস্ট **** -->
+            <option>VIA_1st</option>
+            <option>VIB_1st</option>
+            <option>VIIA_1st</option>
+            <option>VIIB_1st</option>
+            <option>VIIIA_1st</option>
+            <option>VIIIB_1st</option>
+            <option>IXA_1st</option>
+            <option>IXB_1st</option>
+            <option>IXC_1st</option>
+            <option>X (ICT)1st</option>
+            <option>X (GEW)1st</option>
+            <option>X (EMW)1st</option>
+            <option>SSC-26 (ICT)1st</option>
+            <option>SSC-26 (GEW)1st</option>
+            <option>SSC-26 (EMW)1st</option>
+        </select>
+    
+        <label for="date">Date</label>
+        <input type="date" id="date">
+        <button onclick="searchDate()">Search</button>
+    
+        <label for="month">Month</label>
+        <select id="month">
+            <option>Jan</option><option>Feb</option><option>Mar</option><option>Apr</option>
+            <option>May</option><option>Jun</option><option>Jul</option><option>Aug</option>
+            <option>Sep</option><option>Oct</option><option>Nov</option><option>Dec</option>
+        </select>
+        <button onclick="viewMonth()">View</button>
+
+        <!-- **** সংশোধিত: চারটি বাটন সরিয়ে একটি কন্টেইনার তৈরি করা হয়েছে **** -->
+        <div id="buttonContainer" style="display: flex; flex-wrap: wrap; justify-content: center; margin: 10px 0;">
+            <!-- ডায়নামিক বাটন এখানে যুক্ত হবে -->
+        </div>
+            
+        <button class="previous-btn" style="margin-top:10px;" onclick="goBackToMain()">Back to Student Page</button>
+        <div id="tableContainer"></div>
+    </div>
+    
+    <div id="accountsCornerInterface">
+        <div class="card" id="accountsUnlockCard">
+            <header>
+                <h1>UCEP Robertsongonj Technical School</h1>
+                <h2>Unlock</h2>
+            </header>
+            <label for="accountsUnlockKey">Please Enter Your **Unlock Key**</label>
+            <input id="accountsUnlockKey" type="text" placeholder="Enter unlock key here" />
+            <button id="accountsUnlockBtn">Unlock</button> 
+            <div id="accountsMsg" class="error"></div>
+            <button id="accountsUnlockBackBtn">Back to Student Page</button>
+        </div>
+
+        <div class="card hidden" id="accountsCard">
+            <header>
+                <h1>UCEP Robertsongonj Technical School</h1>
+                <h2>Tuition Fees Collection Report</h2>
+            </header>
+            <span class="small">Class & Month wise Tuition Fees Collection</span>
+            
+            <div id="monthFilterContainer">
+                <label for="monthFilter">Select Month:</label>
+                <select id="monthFilter" onchange="filterAccountsTable()">
+                    <option value="All">All Months (Default)</option>
+                    <option value="Jan">Jan</option>
+                    <option value="Feb">Feb</option>
+                    <option value="Mar">Mar</option>
+                    <option value="Apr">Apr</option>
+                    <option value="May">May</option>
+                    <option value="Jun">Jun</option>
+                    <option value="Jul">Jul</option>
+                    <option value="Aug">Aug</option>
+                    <option value="Sep">Sep</option>
+                    <option value="Oct">Oct</option>
+                    <option value="Nov">Nov</option>
+                    <option value="Dec">Dec</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Total Collection">Total Collection</option>
+                </select>
+            </div>
+
+            <div class="table-container">
+                <table id="feesTable">
+                    <thead>
+                        <tr>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <button id="accountsBackBtn">Back</button> 
+        </div>
+    </div>
+
+    <!-- MIS Calculation Interface (নতুন লেআউট) -->
+    <div id="misCalculationInterface">
+        <div class="mis-fullscreen-container">
+            <div class="mis-header">
+                <h1>UCEP Robertsongonj Technical School</h1>
+                <h2>MIS Calculation</h2>
+            </div>
+
+            <div class="mis-input-section">
+                <!-- লাইন 1: No. of Boys এবং No. of Girls পাশাপাশি -->
+                <div class="mis-boy-girl" style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <label>No. of Boys</label>
+                        <input type="number" id="boy" placeholder="0" oninput="autoTotal()">
+                    </div>
+                    <div>
+                        <label>No. of Girls</label>
+                        <input type="number" id="girl" placeholder="0" oninput="autoTotal()">
+                    </div>
+                </div>
+                
+                <!-- লাইন 2: Total Students (পুরো প্রস্থ) -->
+                <div class="mis-full">
+                    <label>Total Students</label>
+                    <input type="number" id="total_student" readonly value="0">
+                </div>
+                
+                <!-- লাইন 3: Attendance Rate দুটি পাশাপাশি -->
+                <div style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <label>Attendance Rate - Boy (%)</label>
+                        <input type="number" step="0.01" id="rate_boy" placeholder="e.g. 92.73">
+                    </div>
+                    <div>
+                        <label>Attendance Rate - Girl (%)</label>
+                        <input type="number" step="0.01" id="rate_girl" placeholder="e.g. 90.63">
+                    </div>
+                </div>
+                
+                <!-- লাইন 4: Number of School Days (পুরো প্রস্থ, মাঝখানে) -->
+                <div class="mis-days">
+                    <label>Number of School Days</label>
+                    <input type="number" id="days" placeholder="e.g. 21">
+                </div>
+            </div>
+
+            <button class="mis-calculate-btn" onclick="calculateMIS()">Calculate Now</button>
+
+            <div class="mis-result-card" id="resultCard" style="display:none;">
+                <div class="mis-res-row">
+                    <span>Attendance Rate Total:</span>
+                    <b id="res_total_rate">0.00%</b>
+                </div>
+                <div class="mis-total-row"></div>
+                <div class="mis-res-row">
+                    <span>Number of Absence Boy:</span>
+                    <b class="mis-highlight-absent" id="res_abs_boy">0</b>
+                </div>
+                <div class="mis-res-row">
+                    <span>Number of Absence Girl:</span>
+                    <b class="mis-highlight-absent" id="res_abs_girl">0</b>
+                </div>
+                <div class="mis-res-row mis-total-row">
+                    <span>Number of Absence Total:</span>
+                    <b class="mis-highlight-absent" id="res_abs_total" style="font-size: 22px;">0</b>
+                </div>
+            </div>
+
+            <button class="mis-back-btn" onclick="goBackFromMIS()">Back to Student Page</button>
+        </div>
+    </div>
+
+    <div id="loadingMsg">
+        <p>অনুগ্রহকরে অপেক্ষা করুন। প্রয়োজনে যোগাযোগ করুন- 01722-666676</p>
+        <p><span id="clock"></span></p>
+    </div>
+
+    <div id="popupContainer">
+        <div id="popupBox">
+            <p>অনুগ্রহ করে আপনার আনলক কী (Unlock Key) দিন।</p>
+            <button id="popupOkBtn" onclick="okButtonClick()">OK</button>
+        </div>
+    </div>
+    
+    <script>
+        // Config for all parts of the app
+        const SHEET_ID = "1_UnACuEe2B4X0GrHpQt4l8t8Hb7a7H9H"; 
+        const SHEET_NAME = "app data"; 
+        const GID = 0; // For Accounts Corner CSV fetch
+        const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+        const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
+        
+        // --- নোটিশের জন্য নতুন কনফিগারেশন ---
+        const NOTICE_SHEET_ID = "1JvWsz_hHtKBTkNlUn4dRgg5A-EttlXstrYVYMeJ7DmA"; // আপনার দেওয়া নতুন শীট ID
+        const NOTICE_GID = 1364247966; // আপনার দেওয়া gid
+        const NOTICE_API_URL = `https://docs.google.com/spreadsheets/d/${NOTICE_SHEET_ID}/gviz/tq?tqx=out:json&gid=${NOTICE_GID}`;
+        // -----------------------------------
+
+        // Column Indices for Teacher's Corner (based on previous code)
+        const UNLOCK_COL = 59; // আর প্রয়োজন নেই, তবে রেখে দিলাম
+        const CLASS_COL = 40;
+        const MRNO_COL = 41;
+        const DATE_COL = 42;
+        const NAME_COL = 44;
+        const ROLL_COL = 45;
+        const AMOUNT_COL = 56;
+        const MONTH_COL = 58;
+
+        // Column Indices for Accounts Corner (based on new code)
+        const ACCOUNTS_UNLOCK_COL = 'BL';
+        const ACCOUNTS_CLASS_COL = 'AO'; 
+        const ACCOUNTS_MONTH_COL = 'BG'; 
+        const ACCOUNTS_AMOUNT_COL = 'BE'; 
+
+        let csvRows = []; // For Accounts Corner CSV data
+        let processedResults = {}; // For Accounts Corner processed data
+
+        // --- Interface Switching and Utility Functions ---
+
+        document.getElementById("teacherCornerBtn").onclick = function() {
+            document.getElementById("accountsCornerInterface").style.display = "none";
+            document.getElementById("misCalculationInterface").style.display = "none";
+            document.getElementById("mainInterface").style.display = "none";
+            document.getElementById("teacherCornerInterface").style.display = "block";
+            // **** সংশোধিত: টিচার্স কর্নারে ঢোকার সময় ডায়নামিক বাটন লোড করানো হবে ****
+            loadTeacherButtons();
+        };
+
+        // MIS Calculation বাটনের ইভেন্ট হ্যান্ডলার
+        document.getElementById("misCalculationBtn").onclick = function() {
+            document.getElementById("teacherCornerInterface").style.display = "none";
+            document.getElementById("accountsCornerInterface").style.display = "none";
+            document.getElementById("mainInterface").style.display = "none";
+            document.getElementById("misCalculationInterface").style.display = "block";
+            
+            // MIS Calculation ফর্ম রিসেট করা
+            document.getElementById('boy').value = '';
+            document.getElementById('girl').value = '';
+            document.getElementById('total_student').value = '0';
+            document.getElementById('days').value = '';
+            document.getElementById('rate_boy').value = '';
+            document.getElementById('rate_girl').value = '';
+            document.getElementById('resultCard').style.display = 'none';
+        };
+
+        document.getElementById("accountsCornerBtn").onclick = function() {
+            document.getElementById("teacherCornerInterface").style.display = "none";
+            document.getElementById("misCalculationInterface").style.display = "none";
+            document.getElementById("mainInterface").style.display = "none";
+            document.getElementById("accountsCornerInterface").style.display = "block";
+            // Reset Accounts Corner
+            document.getElementById('accountsCard').classList.add('hidden');
+            document.getElementById('accountsUnlockCard').classList.remove('hidden');
+            document.getElementById('accountsUnlockKey').value = '';
+            document.getElementById('accountsMsg').textContent = '';
+            document.getElementById('monthFilter').value = 'All'; // ড্রপডাউন রিসেট
+        };
+
+        function showUnlockPopup() {
+            document.getElementById("popupContainer").style.display = "flex";
+        }
+
+        function okButtonClick() {
+            document.getElementById("popupContainer").style.display = "none";
+        }
+        
+        function goBackToMain() { // Teacher's Corner: Back to Student Page button
+            document.getElementById("teacherCornerInterface").style.display = "none";
+            document.getElementById("accountsCornerInterface").style.display = "none";
+            document.getElementById("misCalculationInterface").style.display = "none";
+            document.getElementById("mainInterface").style.display = "block";
+            clearData(); 
+        }
+
+        // MIS Calculation থেকে Back বাটনের ফাংশন
+        function goBackFromMIS() {
+            document.getElementById("misCalculationInterface").style.display = "none";
+            document.getElementById("mainInterface").style.display = "block";
+            clearData();
+        }
+
+        function showLoading(msg){ const el = document.getElementById("loadingMsg"); el.style.display = "block"; if(msg) el.querySelector("p").innerText = msg; }
+        function hideLoading(){ document.getElementById("loadingMsg").style.display="none"; }
+        function clearData(){
+            document.getElementById("rollInput").value="";
+            document.getElementById("nameField").value="";
+            document.getElementById("feeTable").style.display="none";
+            document.getElementById("paymentBtnRow").hidden=true;
+            document.getElementById("paymentHeader").style.display="none";
+            document.getElementById("paymentTable").style.display="none";
+            document.getElementById("closePaymentBtn").style.display="none";
+            document.getElementById("table2").style.display="none";
+            document.getElementById("table2Controls").style.display="none";
+            document.getElementById("nameRow").style.display="none";
+            for(let i=2;i<=11;i++){
+                const b=document.getElementById("B"+i); const c=document.getElementById("C"+i); const d=document.getElementById("D"+i);
+                if(b) b.innerText="-"; if(c) c.innerText="-"; if(d) d.innerText="-";
+            }
+        }
+        function safeGet(row, idx){ try{ return (Array.isArray(row) && typeof row[idx] !== "undefined") ? row[idx] : ""; }catch(e){return "";} }
+        function toNumber(v){ const n = parseFloat(String(v).toString().replace(/,/g,'')); return isNaN(n)?0:n; }
+
+        // --- Student Page Logic (অপরিবর্তিত) ---
+        async function loadData(){
+            showLoading("ডাটা লোডকরা হচ্ছে — অনুগ্রহ করে অপেক্ষা করুন...");
+            try{
+                const fetchUrl = sheetUrl + "&t=" + Date.now();
+                const res = await fetch(fetchUrl);
+                const text = await res.text();
+                if(!res.ok){ hideLoading(); throw new Error(`Network error: ${res.status} ${res.statusText}`); }
+                const lower = text.slice(0,200).toLowerCase();
+                if(lower.includes("<!doctype html") || lower.includes("<html")){
+                    hideLoading();
+                    if(lower.includes("login") || lower.includes("sign in") || lower.includes("authentication")){
+                        alert("গুগল শীটঅ্যাক্সেস সমস্যা: ব্রাউজারকে লগইন দেখাচ্ছে।\nসমাধান: শীটটি public করা (Share → Anyone with link → Viewer) অথবা File → Publish to the web করেদেখো।");
+                    } else if(lower.includes("not found") || lower.includes("404") || lower.includes("you need permission")){
+                        alert("Google Sheets পাওয়া যায়নি বা প্রাইভেট আছে।নিশ্চিত করো স্প্রেডশীটটি public বা 'Anyone with the link' করা আছে।");
+                    } else {
+                        alert("Sheet থেকে JSON পাওয়া যায়নি — যেটা এসেছে সেটা HTML। নিশ্চিত করোযে তুমি সঠিক Spreadsheet ID দিয়েছেন এবং শীটটি Google Sheets (not PDF) ও public আছে।");
+                    }
+                    console.error("loadData: HTML response (not JSON). preview:", text.slice(0,400));
+                    return [];
+                }
+                let jsonText = null;
+                const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]+)\);?/);
+                if(match && match[1]){ jsonText = match[1]; } else { const first = text.indexOf("{"); const last = text.lastIndexOf("}"); if(first !== -1 && last !== -1 && last > first){ jsonText = text.slice(first, last+1); } }
+                if(!jsonText){
+                    hideLoading();
+                    console.error("Unable to extract JSON from sheet response. preview:", text.slice(0,400));
+                    alert("শীট থেকে JSON পার্স করতে পারছি না। নিশ্চিত করো sheet link সঠিক কিনা এবং শীটটি Google Sheets (not Drive file like PDF) ও public করুন।");
+                    return [];
+                }
+                const json = JSON.parse(jsonText);
+                hideLoading();
+                if(!json.table || !Array.isArray(json.table.rows)){ console.warn("Parsed JSON but no table.rows present:", json); return []; }
+                const rows = json.table.rows.map(r => (r.c ? r.c.map(cell => cell ? cell.v : "") : []));
+                console.log("loadData(): rows loaded =", rows.length, rows.slice(0,3));
+                return rows;
+            } catch(err){
+                hideLoading();
+                console.error("loadData error:", err);
+                alert("ডাটালোড করতে সমস্যা: " + err.message + "\n\nসমাধান টিপস:\n1) নিশ্চিত করো এটি একটি Google Sheets ফাইল (না হলে গুগলে open করে 'Make a Google Sheets' করার প্রয়োজন)।\n2) Share → Anyone with the link → Viewer সেটকরা আছে কি চেক করো।\n3)অথবা File → Publish to the web করে দেখো।\n4) যদি সমস্যা চালিয়ে থাকে, ব্রাউজারের Console তে যে ত্রুটিদেখো তা কপি করেএখানে চ্যাট করো।");
+                return [];
+            }
+        }
+        
+        async function searchData(){
+            document.getElementById("table2").style.display="none";
+            document.getElementById("table2Controls").style.display="none";
+            const cls = document.getElementById("classSelect").value;
+            const roll = String(document.getElementById("rollInput").value || "").trim();
+            if(!roll){ alert("অনুগ্রহ করে Roll Number লিখুন!"); return; }
+            const combined = cls + roll;
+            const rows = await loadData();
+            if(rows.length === 0){ return; }
+            const match = rows.find(r => String(safeGet(r,2)) === combined);
+            console.log("searchData: combined=", combined, "found?", !!match);
+            if(!match){ alert("কোনোডাটা মেলেনি (No data found)।\nনিশ্চিত করোযে Class+Roll (সংযুক্ত কলামে) sheet-এ মজুদ আছে।"); return; }
+            document.getElementById("nameField").value = safeGet(match,3) || "";
+            document.getElementById("nameRow").style.display = "flex";
+            document.getElementById("feeTable").style.display = "table";
+            document.getElementById("paymentBtnRow").hidden = false;
+            function fill(row, colT, colP){
+                const t = toNumber(safeGet(match, colT));
+                const p = toNumber(safeGet(match, colP));
+                const due = t - p;
+                document.getElementById("B"+row).innerText = t ? t : "-";
+                document.getElementById("C"+row).innerText = p ? p : "-";
+                document.getElementById("D"+row).innerText = (due || due === 0) ? due : "-";
+            }
+            fill(2,4,5); fill(3,7,8); fill(4,28,29); fill(5,13,14); fill(6,10,11); fill(7,19,20); fill(8,22,23); fill(9,25,26); fill(10,16,17);
+            function sumCol(col){
+                let total = 0;
+                for(let i=2;i<=10;i++){ const txt = String(document.getElementById(col + i).innerText || "0").replace(/[, ]+/g,''); const n = parseFloat(txt); if(!isNaN(n)) total += n; }
+                return total;
+            }
+            document.getElementById("B11").innerText = sumCol("B") || "-";
+            document.getElementById("C11").innerText = sumCol("C") || "-";
+            document.getElementById("D11").innerText = sumCol("D") || "-";
+        }
+        async function viewData(){
+            document.getElementById("feeTable").style.display="none";
+            document.getElementById("nameRow").style.display="none";
+            document.getElementById("paymentHeader").style.display="none";
+            document.getElementById("paymentTable").style.display="none";
+            document.getElementById("closePaymentBtn").style.display="none";
+            document.getElementById("paymentBtnRow").hidden=true;
+            const cls = document.getElementById("classSelect").value;
+            const rows = await loadData();
+            if(rows.length === 0) return;
+            const filtered = rows.filter(r => String(safeGet(r,0)) === cls);
+            if(filtered.length === 0){ alert("No records found for this class."); return; }
+            document.getElementById("rollRow").style.display="none";
+            document.getElementById("searchRow").style.display="none";
+            const tbody = document.getElementById("table2Body");
+            tbody.innerHTML = "";
+            let totalTarget=0, totalPaid=0, totalDue=0;
+            filtered.forEach(r=>{
+                const roll = safeGet(r,1) || "-";
+                const name = safeGet(r,3) || "-";
+                const target = toNumber(safeGet(r,31));
+                const paid = toNumber(safeGet(r,32));
+                const due = target - paid;
+                totalTarget += target; totalPaid += paid; totalDue += due;
+                const tr = `<tr><td>${roll}</td><td>${name}</td><td>${target || "-"}</td><td>${paid || "-"}</td><td>${due || "-"}</td></tr>`;
+                tbody.insertAdjacentHTML("beforeend", tr);
+            });
+            tbody.insertAdjacentHTML("beforeend", `<tr style="font-weight:bold;background:#f2f2f2;"><td colspan="2">Total</td><td>${totalTarget}</td><td>${totalPaid}</td><td>${totalDue}</td></tr>`);
+            document.getElementById("table2").style.display = "table";
+            document.getElementById("table2Controls").style.display = "flex";
+        }
+        function closeTable2(){
+            document.getElementById("table2").style.display="none";
+            document.getElementById("table2Controls").style.display="none";
+            document.getElementById("rollRow").style.display="flex";
+            document.getElementById("searchRow").style.display="flex";
+        }
+        async function viewPaymentHistory(){
+            try{
+                const cls = document.getElementById("classSelect").value;
+                const roll = String(document.getElementById("rollInput").value || "").trim();
+                if(!roll){ alert("অনুগ্রহ করে প্রথমে Roll Number দিন!"); return; }
+                const combined = cls + roll;
+                const rows = await loadData();
+                if(rows.length === 0) return;
+                const matches = rows.filter(r => String(safeGet(r,43)) === combined);
+                console.log("viewPaymentHistory: matches =", matches.length);
+                if(matches.length === 0){ alert("No payment history found!"); return; }
+                document.getElementById("table2").style.display="none";
+                document.getElementById("table2Controls").style.display="none";
+                const tbody = document.getElementById("paymentBody");
+                const tfoot = document.getElementById("paymentFooter");
+                tbody.innerHTML = ""; tfoot.innerHTML = "";
+                let totalCols = Array(11).fill(0);
+                let totalBE = 0;
+                matches.forEach(r=>{
+                    const mr = safeGet(r,41) || "-";
+                    let dateStr = "-";
+                    if(safeGet(r,42)){
+                        const serial = Number(safeGet(r,42));
+                        if(!isNaN(serial) && serial > 59){
+                            const jsDate = new Date((serial - 25569) * 86400 * 1000);
+                            if(!isNaN(jsDate)){
+                                const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                                const day = String(jsDate.getDate()).padStart(2,"0");
+                                const month = months[jsDate.getMonth()];
+                                const year = jsDate.getFullYear();
+                                dateStr = `${day}-${month}-${year}`;
+                            } else dateStr = String(safeGet(r,42));
+                        } else {
+                            dateStr = String(safeGet(r,42));
+                        }
+                    }
+                    const colsRaw = [46,47,48,49,50,51,52,53,54,55,56].map(i => toNumber(safeGet(r,i)));
+                    colsRaw.forEach((v,i)=> totalCols[i] += v );
+                    totalBE += toNumber(safeGet(r,56));
+                    const tr = `<tr><td>${mr}</td><td>${dateStr}</td><td>${colsRaw[0]||"-"}</td><td>${colsRaw[1]||"-"}</td><td>${colsRaw[2]||"-"}</td><td>${colsRaw[3]||"-"}</td><td>${colsRaw[4]||"-"}</td><td>${colsRaw[5]||"-"}</td><td>${colsRaw[6]||"-"}</td><td>${colsRaw[7]||"-"}</td><td>${colsRaw[8]||"-"}</td><td>${colsRaw[9]||"-"}</td><td>${colsRaw[10]||"-"}</td></tr>`;
+                    tbody.insertAdjacentHTML("beforeend", tr);
+                });
+                tfoot.innerHTML = `<tr><td colspan="2">Total</td><td>${totalCols[0]}</td><td>${totalCols[1]}</td><td>${totalCols[2]}</td><td>${totalCols[3]}</td><td>${totalCols[4]}</td><td>${totalCols[5]}</td><td>${totalCols[6]}</td><td>${totalCols[7]}</td><td>${totalCols[8]}</td><td>${totalCols[9]}</td><td>${totalBE}</td></tr>`;
+                document.getElementById("paymentHeader").style.display="block";
+                document.getElementById("paymentTable").style.display="table";
+                document.getElementById("closePaymentBtn").style.display="inline-block";
+            } catch(e){
+                console.error("viewPaymentHistory error:", e);
+                alert("Payment history দেখাতে সমস্যা: " + e.message);
+            }
+        }
+        function closePayment(){
+            document.getElementById("paymentHeader").style.display="none";
+            document.getElementById("paymentTable").style.display="none";
+            document.getElementById("closePaymentBtn").style.display="none";
+        }
+        (function startClock(){ const el = document.getElementById("clock"); if(!el) return; setInterval(()=>{ el.innerText = new Date().toLocaleString(); },1000); })();
+        
+        // --- Teacher's Corner Logic (সংশোধিত) ---
+
+        // **** সংশোধিত: আনলক ফাংশন সরিয়ে দেওয়া হয়েছে, এখন সরাসরি বাটন লোড হবে ****
+        async function loadTeacherButtons() {
+            const buttonContainer = document.getElementById('buttonContainer');
+            buttonContainer.innerHTML = ''; // আগের বাটনগুলো মুছে ফেলা
+
+            showLoading("বাটনের ডেটা লোড করা হচ্ছে...");
+            try {
+                // BJ (কলাম 62) এবং BK (কলাম 63) কলাম থেকে ডেটা আনতে হবে।
+                // আমরা কলাম ইনডেক্স ব্যবহার করব। মনে রাখবেন, কলাম A = 0, B = 1, ... 
+                // সুতরাং BJ = কলাম 61 (যেহেতু A=0, B=1, ... BJ = 61)
+                // BK = কলাম 62
+                // আমরা শুধু সেই রো গুলো নেব যেখানে BJ কলাম খালি নেই।
+                const bjColIndex = 61; // BJ এর জন্য কলাম ইনডেক্স
+                const bkColIndex = 62; // BK এর জন্য কলাম ইনডেক্স
+
+                const res = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`);
+                if (!res.ok) throw new Error("Network error");
+                const csv = await res.text();
+                const rows = csv.split(/\r?\n/).map(r => r.split(','));
+
+                // হেডার রো (ধরে নিচ্ছি প্রথম রো) বাদ দেওয়া হচ্ছে
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (row.length > bjColIndex) {
+                        const buttonTextRaw = row[bjColIndex] ? row[bjColIndex].replace(/"/g, '').trim() : '';
+                        if (buttonTextRaw !== '') {
+                            const buttonLink = (row.length > bkColIndex && row[bkColIndex]) ? row[bkColIndex].replace(/"/g, '').trim() : null;
+                            
+                            const button = document.createElement('button');
+                            button.textContent = buttonTextRaw;
+                            button.style.width = 'auto';
+                            button.style.minWidth = '80px';
+                            button.style.margin = '5px';
+                            
+                            if (buttonLink) {
+                                // যদি লিংক থাকে, তাহলে ক্লিক করলে লিংক খুলবে
+                                button.onclick = () => {
+                                    window.open(buttonLink, '_blank');
+                                };
+                            } else {
+                                // যদি লিংক না থাকে, তাহলে বাটনটি ডিসেবল করে দেওয়া
+                                button.disabled = true;
+                                button.style.opacity = '0.5';
+                                button.style.cursor = 'not-allowed';
+                                button.title = 'No link available';
+                            }
+                            buttonContainer.appendChild(button);
+                        }
+                    }
+                }
+
+                hideLoading();
+            } catch (error) {
+                console.error('Error fetching button data:', error);
+                hideLoading();
+                buttonContainer.innerHTML = '<p style="color:red; text-align:center;">বাটন লোড করতে সমস্যা হয়েছে।</p>';
+            }
+        }
+        
+        function excelDateToJSDate(serial){
+            const utc_days=Math.floor(serial-25569);
+            const utc_value=utc_days*86400;
+            const date_info=new Date(utc_value*1000);
+            const day=String(date_info.getDate()).padStart(2,'0');
+            const month=String(date_info.getMonth()+1).padStart(2,'0');
+            const year=date_info.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+        
+        async function searchDate(){
+            document.getElementById("tableContainer").innerHTML="";
+            const selectedClass = document.getElementById("teacherClassSelect").value.trim();
+            const selectedDate = document.getElementById("date").value;
+            if(!selectedDate){ alert("Select a date"); return; }
+            const d = new Date(selectedDate);
+            const dateFormatted = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+            
+            showLoading("অনুগ্রহকরে অপেক্ষা করুন, আপনার ডাটা লোড করা হচ্ছে।");
+            
+            try {
+                const res = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`);
+                if(!res.ok) throw new Error("Network error");
+                const csv = await res.text();
+                const rows = csv.split(/\r?\n/).map(r=>r.split(","));
+                const filtered = rows.filter(r=>{
+                    const classVal = r[CLASS_COL]?r[CLASS_COL].replace(/"/g,'').trim():"";
+                    const dateSerial = r[DATE_COL]?parseFloat(r[DATE_COL].replace(/"/g,'').trim()):null;
+                    const dateVal = !isNaN(dateSerial)? excelDateToJSDate(dateSerial) : "";
+                    return classVal===selectedClass && dateVal===dateFormatted;
+                });
+                
+                hideLoading();
+                if(filtered.length===0){ alert("No data found for this Class & Date"); return; }
+                
+                let total=0;
+                let html=`<h3>Students' Payment Details on ${dateFormatted}</h3>`;
+                html+=`<table><thead><tr><th>Serial No.</th><th>MR No.</th><th>Name of Student</th><th>Roll</th><th>Amount</th></tr></thead><tbody>`;
+                filtered.forEach((r,i)=>{
+                    const mrno=r[MRNO_COL]?r[MRNO_COL].replace(/"/g,''):"";
+                    const name=r[NAME_COL]?r[NAME_COL].replace(/"/g,''):"";
+                    const roll=r[ROLL_COL]?r[ROLL_COL].replace(/"/g,''):"";
+                    const amount=parseFloat(r[AMOUNT_COL]?r[AMOUNT_COL].replace(/"/g,''):"0")||0;
+                    total+=amount;
+                    html+=`<tr><td>${i+1}</td><td>${mrno}</td><td>${name}</td><td>${roll}</td><td>${amount}</td></tr>`;
+                });
+                html+=`<tr><td colspan="4"><strong>Total</strong></td><td><strong>${total}</strong></td></tr>`;
+                html+=`</tbody></table><button class="close-btn" onclick="document.getElementById('tableContainer').innerHTML=''">Close</button>`;
+                document.getElementById("tableContainer").innerHTML=html;
+            } catch(err){ 
+                console.error(err); 
+                alert("Error fetching data. Try again."); 
+                hideLoading();
+            }
+        }
+        
+        async function viewMonth(){
+            document.getElementById("tableContainer").innerHTML="";
+            document.getElementById("date").value="";
+            const selectedClass = document.getElementById("teacherClassSelect").value.trim();
+            const selectedMonth = document.getElementById("month").value.trim();
+            
+            showLoading("অনুগ্রহকরে অপেক্ষা করুন, আপনার ডাটা লোড করা হচ্ছে।");
+            
+            try{
+                const res = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`);
+                if(!res.ok) throw new Error("Network error");
+                const csv = await res.text();
+                const rows = csv.split(/\r?\n/).map(r=>r.split(","));
+                const filtered = rows.filter(r=>{
+                    const monthVal = r[MONTH_COL]?r[MONTH_COL].replace(/"/g,'').trim():"";
+                    const classVal = r[CLASS_COL]?r[CLASS_COL].replace(/"/g,'').trim():"";
+                    return monthVal===selectedMonth && classVal===selectedClass;
+                });
+                
+                hideLoading();
+                if(filtered.length===0){ alert("No data found for this Class & Month"); return; }
+                
+                let total=0;
+                let html=`<h3>Students' Payment Details on ${selectedMonth}</h3>`;
+                html+=`<table><thead><tr><th>Serial No.</th><th>MR No.</th><th>Name of Student</th><th>Roll</th><th>Amount</th></tr></thead><tbody>`;
+                filtered.forEach((r,i)=>{
+                    const mrno=r[MRNO_COL]?r[MRNO_COL].replace(/"/g,''):"";
+                    const name=r[NAME_COL]?r[NAME_COL].replace(/"/g,''):"";
+                    const roll=r[ROLL_COL]?r[ROLL_COL].replace(/"/g,''):"";
+                    const amount=parseFloat(r[AMOUNT_COL]?r[AMOUNT_COL].replace(/"/g,''):"0")||0;
+                    total+=amount;
+                    html+=`<tr><td>${i+1}</td><td>${mrno}</td><td>${name}</td><td>${roll}</td><td>${amount}</td></tr>`;
+                });
+                html+=`<tr><td colspan="4"><strong>Total</strong></td><td><strong>${total}</strong></td></tr>`;
+                html+=`</tbody></table><button class="close-btn" onclick="document.getElementById('tableContainer').innerHTML=''">Close</button>`;
+                document.getElementById("tableContainer").innerHTML=html;
+            } catch(err){ 
+                console.error(err); 
+                alert("Error fetching data");
+                hideLoading();
+            }
+        }
+
+        // --- Accounts Corner Logic (অপরিবর্তিত) ---
+
+        // কলাম লেটারকে ইনডেক্সে রূপান্তর করার ফাংশন
+        function colLetterToIndex(letter){
+            letter = letter.toUpperCase().trim();
+            let idx = 0;
+            for (let i=0;i<letter.length;i++){
+                idx = idx*26 + (letter.charCodeAt(i)-64);
+            }
+            return idx-1;
+        }
+
+        // Google Sheet থেকে CSV ডেটা ফেচ করার ফাংশন
+        async function fetchCSV(url){
+            const res = await fetch(url);
+            const text = await res.text();
+            const rows = [];
+            const lines = text.split(/\r?\n/);
+            for(let line of lines){
+                if(line.trim()==="") continue;
+                const items = [];
+                let cur="", inQuotes=false;
+                for(let i=0;i<line.length;i++){
+                    const ch = line[i];
+                    if(ch === '"'){ inQuotes = !inQuotes; continue; }
+                    if(ch === ',' && !inQuotes){ items.push(cur); cur=""; continue; }
+                    cur += ch;
+                }
+                items.push(cur);
+                rows.push(items);
+            }
+            return rows;
+        }
+
+        // ডেটা তুলনা বা পার্স করার জন্য স্ট্রিংকে নরমালইজ করা
+        function normalizeForCompare(v){
+            if(v===undefined||v===null) return "";
+            return String(v).trim().replace(/,/g,'').replace(/"/g,'');
+        }
+
+        // DOM এলিমেন্টগুলো সিলেক্ট করা হলো
+        const accountsUnlockBtn = document.getElementById('accountsUnlockBtn');
+        const accountsUnlockKeyInput = document.getElementById('accountsUnlockKey');
+        const accountsMsg = document.getElementById('accountsMsg');
+        const accountsUnlockCard = document.getElementById('accountsUnlockCard');
+        const accountsCard = document.getElementById('accountsCard');
+        const feesTable = document.getElementById('feesTable');
+        const accountsBackBtn = document.getElementById('accountsBackBtn');
+        const accountsUnlockBackBtn = document.getElementById('accountsUnlockBackBtn');
+        const monthFilter = document.getElementById('monthFilter'); // নতুন ড্রপডাউন
+
+
+        // ড্যাশবোর্ড আনলক লজিক
+        accountsUnlockBtn.addEventListener('click', async ()=>{
+            accountsMsg.textContent="";
+            const keyTyped = accountsUnlockKeyInput.value.trim();
+            if(!keyTyped){ accountsMsg.textContent="Enter the unlock key."; return; }
+
+            try{
+                accountsMsg.textContent = "Loading data, please wait...";
+                
+                if(csvRows.length===0){ csvRows = await fetchCSV(CSV_URL); }
+
+                const idxBL = colLetterToIndex(ACCOUNTS_UNLOCK_COL); 
+                const unlockRowIndex = 1; 
+                let blVal = "";
+                
+                if (csvRows.length > unlockRowIndex) {
+                    blVal = csvRows[unlockRowIndex][idxBL] ? csvRows[unlockRowIndex][idxBL] : "";
+                }
+
+                if(normalizeForCompare(blVal)!==normalizeForCompare(keyTyped)){
+                    accountsMsg.textContent="Wrong key — please try again.";
+                    return;
+                }
+
+                accountsUnlockCard.classList.add('hidden');
+                accountsCard.classList.remove('hidden');
+                populateTableFromCSV(csvRows);
+                accountsMsg.textContent = ""; 
+            }catch(err){
+                accountsMsg.textContent="Error fetching data: "+err.message;
+            }
+        });
+
+        // Accounts Card-এর Back বাটন
+        accountsBackBtn.addEventListener('click', ()=>{
+            accountsCard.classList.add('hidden');
+            accountsUnlockCard.classList.remove('hidden');
+            accountsUnlockKeyInput.value = ''; 
+            accountsMsg.textContent = ''; 
+            monthFilter.value = 'All'; // ড্রপডাউন রিসেট
+        });
+
+        // Unlock Card-এর Back বাটন (Accounts Corner)
+        accountsUnlockBackBtn.addEventListener('click', goBackToMain);
+
+
+        // ডেটা প্রসেস এবং গ্লোবালি সেভ করার ফাংশন
+        function populateTableFromCSV(rows){
+            const idxAO = colLetterToIndex(ACCOUNTS_CLASS_COL); 
+            const idxBG = colLetterToIndex(ACCOUNTS_MONTH_COL); 
+            const idxBE = colLetterToIndex(ACCOUNTS_AMOUNT_COL); 
+
+            // **** সংশোধিত: নতুন ক্লাস লিস্ট (একদম উপরের মত) ****
+            const classes = [
+                "VIA_1st","VIB_1st","VIIA_1st","VIIB_1st","VIIIA_1st","VIIIB_1st",
+                "IXA_1st","IXB_1st","IXC_1st",
+                "X (ICT)1st","X (GEW)1st","X (EMW)1st",
+                "SSC-26 (ICT)1st","SSC-26 (GEW)1st","SSC-26 (EMW)1st"
+            ];
+            const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+            const results={};
+            classes.forEach(c=>{
+                results[c]={}; months.forEach(m=>results[c][m]=0);
+                results[c]['Pending']=0; results[c]['Total Collection']=0;
+            });
+            results['Total']={}; months.forEach(m=>results['Total'][m]=0);
+            results['Total']['Pending']=0; results['Total']['Total Collection']=0;
+
+            rows.forEach(row=>{
+                // হেডার এবং খালি রো বাদ দেওয়া
+                if(!row || row.length <= Math.max(idxAO, idxBG, idxBE) || row[idxAO] === 'Class') return; 
+                
+                const clsName = normalizeForCompare(row[idxAO]);
+                const month = normalizeForCompare(row[idxBG]);
+                let val = normalizeForCompare(row[idxBE]);
+                val = parseFloat(val) || 0;
+                
+                if(!classes.includes(clsName)) return;
+
+                if(months.includes(month)){
+                    results[clsName][month] += val;
+                } else {
+                    results[clsName]['Pending'] += val;
+                }
+            });
+
+            classes.forEach(c=>{
+                let sum=0;
+                months.forEach(m=>sum+=results[c][m]);
+                results[c]['Total Collection']=sum + results[c]['Pending']; // মোট কালেকশন = মাস + পেন্ডিং
+            });
+
+            // গ্র্যান্ড টোটাল কলামগুলো গণনা করা 
+            months.forEach(m=>{
+                let colSum=0;
+                classes.forEach(c=>colSum+=results[c][m]);
+                results['Total'][m]=colSum;
+            });
+            let pendingSum=0, totalCollectionSum=0;
+            classes.forEach(c=>{
+                pendingSum += results[c]['Pending']; 
+                totalCollectionSum += results[c]['Total Collection'];
+            });
+            results['Total']['Pending']=pendingSum;
+            results['Total']['Total Collection']=totalCollectionSum; 
+
+            processedResults = { results, classes, months };
+
+            // প্রাথমিক রেন্ডারিং (সব কলাম সহ)
+            renderTable('All'); 
+        }
+
+        // টেবিল রেন্ডার করার জন্য ডেডিকেটেড ফাংশন
+        function renderTable(selectedOption) {
+            if(!processedResults.results) return; // ডেটা লোড না হলে বন্ধ
+            
+            const results = processedResults.results;
+            const displayClasses = processedResults.classes;
+            const displayMonths = processedResults.months;
+
+            const thead = feesTable.querySelector('thead tr');
+            const tbody = feesTable.querySelector('tbody');
+            
+            while(thead.cells.length > 0) thead.deleteCell(0);
+            
+            // পুরাতন ডেটা মুছে ফেলা
+            let child = tbody.lastElementChild;
+            while (child) {
+                tbody.removeChild(child);
+                child = tbody.lastElementChild;
+            }
+
+            const columnsToShow = [];
+            if (selectedOption === 'All') {
+                columnsToShow.push(...displayMonths, 'Pending', 'Total Collection');
+                feesTable.classList.remove('single-column-view'); // মোবাইল ভিউ বন্ধ
+            } else if (selectedOption === 'Total Collection' || selectedOption === 'Pending' || displayMonths.includes(selectedOption)) {
+                columnsToShow.push(selectedOption);
+                feesTable.classList.add('single-column-view'); // মোবাইল ভিউ চালু
+            } else {
+                // যদি ভুল কিছু সিলেক্ট হয়, ডিফল্ট হিসাবে অল দেখাবো 
+                columnsToShow.push(...displayMonths, 'Pending', 'Total Collection');
+                feesTable.classList.remove('single-column-view'); 
+            }
+
+            // হেডার রো তৈরি
+            const thClass = thead.insertCell();
+            thClass.outerHTML = '<th>Class / Month</th>'; 
+            
+            columnsToShow.forEach(col => {
+                const th = thead.insertCell();
+                th.outerHTML = `<th>${col}</th>`;
+            });
+            
+
+            let grandTotalResults = {}; 
+            columnsToShow.forEach(col => grandTotalResults[col] = 0);
+
+
+            // ডেটা রো তৈরি
+            displayClasses.forEach(cls => {
+                const tr = tbody.insertRow();
+                
+                const tdCls = tr.insertCell();
+                tdCls.innerText = cls;
+
+                columnsToShow.forEach(col => {
+                    const val = results[cls][col] || 0;
+                    const td = tr.insertCell();
+                    td.innerText = val.toLocaleString();
+                    grandTotalResults[col] += val;
+                });
+            });
+            
+            // টোটাল রো তৈরি
+            const totalRow = tbody.insertRow();
+            totalRow.classList.add('total-row');
+            
+            const tdLabel = totalRow.insertCell();
+            tdLabel.innerText = "Grand Total";
+
+            columnsToShow.forEach(col => {
+                const td = totalRow.insertCell();
+                td.innerText = grandTotalResults[col].toLocaleString();
+            });
+        }
+
+        // ড্রপডাউন মেনু পরিবর্তন হলে এই ফাংশনটি কল হবে
+        function filterAccountsTable(){
+            const selectedOption = monthFilter.value;
+            renderTable(selectedOption);
+        }
+
+        monthFilter.addEventListener('change', filterAccountsTable);
+
+
+        // --- নোটিশ বক্স লজিক (অপরিবর্তিত) ---
+        async function fetchNoticeData() {
+            try {
+                const noticeBox = document.getElementById('noticeBox');
+                const noticeContent = document.getElementById('noticeContent');
+                
+                // showLoading("নোটিশ লোড করা হচ্ছে..."); // নোটিশের জন্য লোডিং বার্তা অপ্রয়োজনীয়, তাই বন্ধ রাখা হলো।
+
+                const fetchUrl = NOTICE_API_URL + "&t=" + Date.now();
+                const res = await fetch(fetchUrl);
+                const text = await res.text();
+                
+                // hideLoading();
+
+                let jsonText = null;
+                const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]+)\);?/);
+                if(match && match[1]){ 
+                    jsonText = match[1]; 
+                } else { 
+                    const first = text.indexOf("{"); 
+                    const last = text.lastIndexOf("}"); 
+                    if(first !== -1 && last !== -1 && last > first){ 
+                        jsonText = text.slice(first, last+1); 
+                    }
+                }
+
+                if(!jsonText){
+                    console.error("Notice: JSON data not found in response.");
+                    return;
+                }
+                
+                const json = JSON.parse(jsonText);
+                const rows = json.table?.rows;
+
+                if(!rows || rows.length === 0) {
+                    console.log("Notice: No rows found.");
+                    return;
+                }
+                
+                // C কলামের ডেটা (index 2) এবং B কলামের ডেটা (index 1)
+                const lastRow = rows[rows.length - 1].c;
+                const status = lastRow[2] ? String(lastRow[2].v || "").toUpperCase().trim() : 'OFF';
+                const message = lastRow[1] ? String(lastRow[1].v || "").trim() : '';
+
+                console.log("Notice: Status =", status, "Message =", message);
+
+                if (status === 'ON' && message !== '') {
+                    noticeContent.innerHTML = message;
+                    noticeBox.style.display = 'block';
+                } else {
+                    noticeBox.style.display = 'none';
+                }
+
+            } catch(err) {
+                console.error("Notice: Error fetching notice data:", err);
+                document.getElementById('noticeBox').style.display = 'none'; // ত্রুটি হলে নোটিশ হাইড করো
+            }
+        }
+
+        // পেজ লোড হওয়ার পরে নোটিশ ডেটা লোড করা
+        window.onload = function() {
+            fetchNoticeData();
+        };
+
+        // --- MIS Calculation Functions (অপরিবর্তিত) ---
+        function autoTotal() {
+            const b = parseFloat(document.getElementById('boy').value) || 0;
+            const g = parseFloat(document.getElementById('girl').value) || 0;
+            document.getElementById('total_student').value = b + g;
+        }
+
+        function calculateMIS() {
+            const b = parseFloat(document.getElementById('boy').value) || 0;
+            const g = parseFloat(document.getElementById('girl').value) || 0;
+            const days = parseFloat(document.getElementById('days').value) || 0;
+            const rb = parseFloat(document.getElementById('rate_boy').value) || 0;
+            const rg = parseFloat(document.getElementById('rate_girl').value) || 0;
+
+            if (days <= 0) {
+                alert("Please enter valid school days.");
+                return;
+            }
+
+            // Logic: Calculate Absentees based on Attendance Rate
+            // Total Possible Days = Students * School Days
+            // Absent Days = Total Possible Days * (1 - Rate/100)
+            
+            const absBoy = (b * days) * (1 - (rb / 100));
+            const absGirl = (g * days) * (1 - (rg / 100));
+            const totalAbs = absBoy + absGirl;
+
+            // Overall Attendance Rate
+            let totalRate = 0;
+            const totalStudent = b + g;
+            if (totalStudent > 0) {
+                totalRate = ((b * rb) + (g * rg)) / totalStudent;
+            }
+
+            // Displaying results
+            document.getElementById('res_total_rate').innerText = totalRate.toFixed(2) + "%";
+            document.getElementById('res_abs_boy').innerText = Math.round(absBoy);
+            document.getElementById('res_abs_girl').innerText = Math.round(absGirl);
+            document.getElementById('res_abs_total').innerText = Math.round(totalAbs);
+
+            document.getElementById('resultCard').style.display = 'block';
+        }
+
+    </script>
+</body>
+</html>
