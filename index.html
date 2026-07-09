@@ -620,6 +620,7 @@
                 <option value="VIIB_1st">VIIB_1st</option>
                 <option value="VIIIA_1st">VIIIA_1st</option>
                 <option value="VIIIB_1st">VIIIB_1st</option>
+                <option value="VIIIC_1st">VIIIC_1st</option>
                 <option value="IXA_1st">IXA_1st</option>
                 <option value="IXB_1st">IXB_1st</option>
                 <option value="IXC_1st">IXC_1st</option>
@@ -716,13 +717,14 @@
         <!-- এখন সরাসরি ক্লাস, ডেট, মান্থের অপশন দেখাবে -->
         <label for="teacherClassSelect">Class</label>
         <select id="teacherClassSelect">
-            <!-- **** সংশোধিত: নতুন ক্লাস লিস্ট **** -->
+            <!-- **** সংশোধিত: নতুন ক্লাস 리스트 **** -->
             <option>VIA_1st</option>
             <option>VIB_1st</option>
             <option>VIIA_1st</option>
             <option>VIIB_1st</option>
             <option>VIIIA_1st</option>
             <option>VIIIB_1st</option>
+            <option>VIIIC_1st</option>
             <option>IXA_1st</option>
             <option>IXB_1st</option>
             <option>IXC_1st</option>
@@ -756,18 +758,6 @@
     </div>
     
     <div id="accountsCornerInterface">
-        <div class="card" id="accountsUnlockCard">
-            <header>
-                <h1>UCEP Robertsongonj Technical School</h1>
-                <h2>Unlock</h2>
-            </header>
-            <label for="accountsUnlockKey">Please Enter Your **Unlock Key**</label>
-            <input id="accountsUnlockKey" type="text" placeholder="Enter unlock key here" />
-            <button id="accountsUnlockBtn">Unlock</button> 
-            <div id="accountsMsg" class="error"></div>
-            <button id="accountsUnlockBackBtn">Back to Student Page</button>
-        </div>
-
         <div class="card hidden" id="accountsCard">
             <header>
                 <h1>UCEP Robertsongonj Technical School</h1>
@@ -955,17 +945,24 @@
             document.getElementById('resultCard').style.display = 'none';
         };
 
-        document.getElementById("accountsCornerBtn").onclick = function() {
+        document.getElementById("accountsCornerBtn").onclick = async function() {
             document.getElementById("teacherCornerInterface").style.display = "none";
             document.getElementById("misCalculationInterface").style.display = "none";
             document.getElementById("mainInterface").style.display = "none";
             document.getElementById("accountsCornerInterface").style.display = "block";
             // Reset Accounts Corner
-            document.getElementById('accountsCard').classList.add('hidden');
-            document.getElementById('accountsUnlockCard').classList.remove('hidden');
-            document.getElementById('accountsUnlockKey').value = '';
-            document.getElementById('accountsMsg').textContent = '';
+            document.getElementById('accountsCard').classList.remove('hidden');
             document.getElementById('monthFilter').value = 'All'; // ড্রপডাউন রিসেট
+
+            // Automatically fetch CSV and populate table (no unlock key required)
+            try {
+                if (csvRows.length === 0) {
+                    csvRows = await fetchCSV(CSV_URL);
+                }
+                populateTableFromCSV(csvRows);
+            } catch (err) {
+                alert("Accounts data load error: " + err.message);
+            }
         };
 
         function showUnlockPopup() {
@@ -1051,7 +1048,7 @@
             } catch(err){
                 hideLoading();
                 console.error("loadData error:", err);
-                alert("ডাটালোড করতে সমস্যা: " + err.message + "\n\nসমাধান টিপস:\n1) নিশ্চিত করো এটি একটি Google Sheets ফাইল (না হলে গুগলে open করে 'Make a Google Sheets' করার প্রয়োজন)।\n2) Share → Anyone with the link → Viewer সেটকরা আছে কি চেক করো।\n3)অথবা File → Publish to the web করে দেখো।\n4) যদি সমস্যা চালিয়ে থাকে, ব্রাউজারের Console তে যে ত্রুটিদেখো তা কপি করেএখানে চ্যাট করো।");
+                alert("ডাটালোড করতে সমস্যা: " + err.message + "\n\nসমাধান টিপস:\n1) নিশ্চিত করো এটি একটি Google Sheets ফাইল (না হলে গুগলে open করে 'Make a Google Sheets' করার প্রয়োজন)।\n2) Share → Anyone with the link → Viewer সেটকরা আছে কি চেক করো।\n3)অথবা File → Publish to the web করে দেখো।\n4) যদি проблема চালিয়ে থাকে, ব্রাউজারের Console তে যে ত্রুটিদেখো তা কপি করেএখানে চ্যাট করো।");
                 return [];
             }
         }
@@ -1345,7 +1342,7 @@
             }
         }
 
-        // --- Accounts Corner Logic (অপরিবর্তিত) ---
+        // --- Accounts Corner Logic (সংশোধিত) ---
 
         // কলাম লেটারকে ইনডেক্সে রূপান্তর করার ফাংশন
         function colLetterToIndex(letter){
@@ -1385,63 +1382,14 @@
             return String(v).trim().replace(/,/g,'').replace(/"/g,'');
         }
 
-        // DOM এলিমেন্টগুলো সিলেক্ট করা হলো
-        const accountsUnlockBtn = document.getElementById('accountsUnlockBtn');
-        const accountsUnlockKeyInput = document.getElementById('accountsUnlockKey');
-        const accountsMsg = document.getElementById('accountsMsg');
-        const accountsUnlockCard = document.getElementById('accountsUnlockCard');
+        // DOM এলিমেন্টগুলো সিলেক্ট করা হলো (unlock removed)
         const accountsCard = document.getElementById('accountsCard');
         const feesTable = document.getElementById('feesTable');
         const accountsBackBtn = document.getElementById('accountsBackBtn');
-        const accountsUnlockBackBtn = document.getElementById('accountsUnlockBackBtn');
         const monthFilter = document.getElementById('monthFilter'); // নতুন ড্রপডাউন
 
-
-        // ড্যাশবোর্ড আনলক লজিক
-        accountsUnlockBtn.addEventListener('click', async ()=>{
-            accountsMsg.textContent="";
-            const keyTyped = accountsUnlockKeyInput.value.trim();
-            if(!keyTyped){ accountsMsg.textContent="Enter the unlock key."; return; }
-
-            try{
-                accountsMsg.textContent = "Loading data, please wait...";
-                
-                if(csvRows.length===0){ csvRows = await fetchCSV(CSV_URL); }
-
-                const idxBL = colLetterToIndex(ACCOUNTS_UNLOCK_COL); 
-                const unlockRowIndex = 1; 
-                let blVal = "";
-                
-                if (csvRows.length > unlockRowIndex) {
-                    blVal = csvRows[unlockRowIndex][idxBL] ? csvRows[unlockRowIndex][idxBL] : "";
-                }
-
-                if(normalizeForCompare(blVal)!==normalizeForCompare(keyTyped)){
-                    accountsMsg.textContent="Wrong key — please try again.";
-                    return;
-                }
-
-                accountsUnlockCard.classList.add('hidden');
-                accountsCard.classList.remove('hidden');
-                populateTableFromCSV(csvRows);
-                accountsMsg.textContent = ""; 
-            }catch(err){
-                accountsMsg.textContent="Error fetching data: "+err.message;
-            }
-        });
-
-        // Accounts Card-এর Back বাটন
-        accountsBackBtn.addEventListener('click', ()=>{
-            accountsCard.classList.add('hidden');
-            accountsUnlockCard.classList.remove('hidden');
-            accountsUnlockKeyInput.value = ''; 
-            accountsMsg.textContent = ''; 
-            monthFilter.value = 'All'; // ড্রপডাউন রিসেট
-        });
-
-        // Unlock Card-এর Back বাটন (Accounts Corner)
-        accountsUnlockBackBtn.addEventListener('click', goBackToMain);
-
+        // Accounts Card-এর Back বাটন (now returns to main)
+        accountsBackBtn.addEventListener('click', goBackToMain);
 
         // ডেটা প্রসেস এবং গ্লোবালি সেভ করার ফাংশন
         function populateTableFromCSV(rows){
@@ -1451,7 +1399,7 @@
 
             // **** সংশোধিত: নতুন ক্লাস লিস্ট (একদম উপরের মত) ****
             const classes = [
-                "VIA_1st","VIB_1st","VIIA_1st","VIIB_1st","VIIIA_1st","VIIIB_1st",
+                "VIA_1st","VIB_1st","VIIA_1st","VIIB_1st","VIIIA_1st","VIIIB_1st","VIIIC_1st",
                 "IXA_1st","IXB_1st","IXC_1st",
                 "X (ICT)1st","X (GEW)1st","X (EMW)1st",
                 "SSC-26 (ICT)1st","SSC-26 (GEW)1st","SSC-26 (EMW)1st"
